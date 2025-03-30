@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 导入统一反馈函数
-source "$(dirname "$0")/init.sh"
+source "$(dirname "$0")/init.sh" "$1"
 
 # 检查源码目录是否存在
 if [ ! -d "$SOURCE_DIR" ]; then
