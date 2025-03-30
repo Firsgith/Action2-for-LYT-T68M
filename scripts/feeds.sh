@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 导入统一反馈函数
-source ./init.sh
+source "$(dirname "$0")/init.sh"
 
 # 设置源码目录名称变量
 # 使用init.sh中导出的SOURCE_DIR变量
