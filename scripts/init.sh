@@ -26,25 +26,24 @@ export -f info_msg
 
 # 设置源码目录名称变量
 # 优先读取配置文件中的分支设置
-if [ -f "../customization/tweak_options" ]; then
-  source "${BASH_SOURCE%/*}/../customization/tweak_options"
-  
-  # 参数有效性校验
-  if [ -n "$source_branch" ]; then
-    # 分支名合法性检查
-    if [[ ! "$source_branch" =~ ^[a-zA-Z0-9_-]+$ ]]; then
-      error_msg "非法分支名称: '$source_branch' 只允许字母、数字、下划线和连字符"
+if [ -n "$GITHUB_ACTIONS_BRANCH" ]; then
+  source_branch="$GITHUB_ACTIONS_BRANCH"
+  success_msg "使用GitHub Actions传递的分支设置源码分支：$source_branch"
+else
+  if [ -f "../customization/tweak_options" ]; then
+    source "${BASH_SOURCE%/*}/../customization/tweak_options"
+    if [ -n "$source_branch" ]; then
+      if [[ ! "$source_branch" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+        error_msg "非法分支名称: '$source_branch' 只允许字母、数字、下划线和连字符"
+      fi
+      if [ $# -gt 0 ]; then
+        warning_msg "检测到配置文件与命令行参数同时存在，优先使用配置文件设置的分支: $source_branch"
+      fi
+      export SOURCE_DIR="$source_branch"
+      success_msg "使用配置文件设置源码分支：$source_branch"
+    else
+      warning_msg "配置文件中source_branch参数为空，自动回退到传统参数模式"
     fi
-    
-    # 参数冲突检测
-    if [ $# -gt 0 ]; then
-      warning_msg "检测到配置文件与命令行参数同时存在，优先使用配置文件设置的分支: $source_branch"
-    fi
-    
-    export SOURCE_DIR="$source_branch"
-    success_msg "使用配置文件设置源码分支：$source_branch"
-  else
-    warning_msg "配置文件中source_branch参数为空，自动回退到传统参数模式"
   fi
 fi
 
