@@ -83,7 +83,7 @@ jobs:
       # 配置编译选项，使用预置的.config文件或生成默认配置
       run: |
         chmod +x scripts/config.sh
-        ./scripts/config.sh
+        ./scripts/config.sh "${{ github.event.inputs.branch }}"
 
     - name: 执行自定义脚本
       # 执行自定义脚本tweak.sh，用于额外的定制化配置
