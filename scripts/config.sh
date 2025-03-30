@@ -39,8 +39,9 @@ if [ -n "$config_files" ]; then
         ../scripts/ccache.sh config
       fi
     fi
-    # 使用make olddefconfig代替menuconfig
-    make olddefconfig > /dev/null 2>&1
+    # 使用make defconfig和make oldconfig生成配置
+    make defconfig > /dev/null 2>&1
+    make oldconfig > /dev/null 2>&1
     success_msg "配置文件应用成功，共修改了$(grep -v '^#' .config | wc -l)项配置"
   else
     info_msg "未找到有效配置文件，使用默认配置"
@@ -97,6 +98,10 @@ if [ -f "../customization/packages-included" ]; then
     pkg_error_count=0
   valid_pkgs=()
   while IFS= read -r pkg; do
+    # 跳过空行和注释行
+    if [ -z "$pkg" ] || [[ "$pkg" =~ ^[[:space:]]*# ]]; then
+      continue
+    fi
     # 包名有效性校验（字母、数字、下划线和连字符）
     if [[ ! "$pkg" =~ ^[a-zA-Z0-9_-]+$ ]]; then
       pkg_error_count=$((pkg_error_count+1))
@@ -135,6 +140,10 @@ if [ -f "../customization/packages_excluded" ]; then
     pkg_error_count=0
   valid_pkgs=()
   while IFS= read -r pkg; do
+    # 跳过空行和注释行
+    if [ -z "$pkg" ] || [[ "$pkg" =~ ^[[:space:]]*# ]]; then
+      continue
+    fi
     if [[ ! "$pkg" =~ ^[a-zA-Z0-9_-]+$ ]]; then
       pkg_error_count=$((pkg_error_count+1))
       warning_msg "检测到无效包名: ${pkg}，已跳过"
