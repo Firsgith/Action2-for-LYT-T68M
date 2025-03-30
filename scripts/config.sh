@@ -2,9 +2,19 @@
 
 # 设置源码目录名称变量
 # 使用init.sh中导出的SOURCE_DIR变量
+source "$(dirname "$0")/init.sh"
+
+# 检查SOURCE_DIR变量是否已设置
+if [ -z "$SOURCE_DIR" ]; then
+  error_msg "SOURCE_DIR变量未设置，请确保init.sh脚本正确执行"
+fi
 
 # 进入源码目录
-cd $SOURCE_DIR
+if [ ! -d "$SOURCE_DIR" ]; then
+  error_msg "源码目录 '$SOURCE_DIR' 不存在，请先运行clone.sh脚本克隆源码"
+fi
+
+cd $SOURCE_DIR || error_msg "无法进入源码目录 '$SOURCE_DIR'"
 
 # 检查并加载配置文件
 # 如果存在自定义配置文件，则使用它
@@ -34,14 +44,16 @@ if [ -n "$config_files" ]; then
         ../scripts/ccache.sh config
       fi
     fi
+    # 使用make olddefconfig代替menuconfig
+    make olddefconfig > /dev/null 2>&1
     success_msg "配置文件应用成功，共修改了$(grep -v '^#' .config | wc -l)项配置"
   else
     info_msg "未找到有效配置文件，使用默认配置"
-    make defconfig
+    make defconfig > /dev/null 2>&1
     success_msg "默认配置生成成功，共包含$(grep -v '^#' .config | wc -l)项配置"
   fi
 else
-  make defconfig
+  make defconfig > /dev/null 2>&1
   # 设置默认机型为T68M
   # 检查并启用T68M相关配置
   if grep -q "DEVICE.*t68m" .config; then
