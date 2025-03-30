@@ -27,7 +27,7 @@ export -f info_msg
 # 设置源码目录名称变量
 # 优先读取配置文件中的分支设置
 if [ -f "../customization/tweak_options" ]; then
-  source "../customization/tweak_options"
+  source "${BASH_SOURCE%/*}/../customization/tweak_options"
   
   # 参数有效性校验
   if [ -n "$source_branch" ]; then
