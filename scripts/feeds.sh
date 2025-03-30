@@ -5,6 +5,9 @@ source "$(dirname "$0")/init.sh"
 
 # 设置源码目录名称变量
 # 使用init.sh中导出的SOURCE_DIR变量
+if [ -z "$SOURCE_DIR" ]; then
+  error_msg "SOURCE_DIR变量未设置，请确保init.sh脚本正确执行"
+fi
 
 # 进入源码目录
 if [ ! -d "$SOURCE_DIR" ]; then
