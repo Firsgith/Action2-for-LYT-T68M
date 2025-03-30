@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 导入统一反馈函数
-source "$(dirname \"$0\")/init.sh"
+source "$(dirname "$0")/init.sh"
 
 # 编译错误分析函数
 analyze_build_error() {
