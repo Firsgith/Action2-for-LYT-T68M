@@ -10,7 +10,13 @@ source "$(dirname "$0")/init.sh"
 if [ ! -d "$SOURCE_DIR" ]; then
   error_msg "源码目录 '$SOURCE_DIR' 不存在，请先运行clone.sh脚本克隆源码"
 fi
-cd $SOURCE_DIR
+
+# 检查源码目录是否为空
+if [ -z "$(ls -A "$SOURCE_DIR" 2>/dev/null)" ]; then
+  error_msg "源码目录 '$SOURCE_DIR' 为空，请确保clone.sh脚本已成功克隆源码"
+fi
+
+cd $SOURCE_DIR || error_msg "无法进入源码目录 '$SOURCE_DIR'"
 
 # 根据分支类型设置默认的feeds源配置
 # 如果feeds.conf.default文件不存在，则创建它
