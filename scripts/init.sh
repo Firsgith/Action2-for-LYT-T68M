@@ -43,16 +43,17 @@ if [ -f "../customization/tweak_options" ]; then
     
     export SOURCE_DIR="$source_branch"
     success_msg "使用配置文件设置源码分支：$source_branch"
-    exit 0
   else
     warning_msg "配置文件中source_branch参数为空，自动回退到传统参数模式"
   fi
 fi
 
 # 保留下游参数兼容处理
-if [ "$1" == "lede" ]; then
-  export SOURCE_DIR="lede"
-else
-  export SOURCE_DIR="immortalwrt"
+if [ -z "$SOURCE_DIR" ]; then
+  if [ "$1" == "lede" ]; then
+    export SOURCE_DIR="lede"
+  else
+    export SOURCE_DIR="immortalwrt"
+  fi
+  success_msg "使用传统参数设置源码分支：$SOURCE_DIR"
 fi
-success_msg "使用传统参数设置源码分支：$SOURCE_DIR"
