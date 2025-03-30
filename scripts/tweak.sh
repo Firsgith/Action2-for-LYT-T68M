@@ -1,13 +1,20 @@
 #!/bin/bash
 
 # 导入统一反馈函数
-source ./init.sh
+source "$(dirname "$0")/init.sh"
 
 # 设置源码目录名称变量
 # 使用init.sh中导出的SOURCE_DIR变量
+if [ -z "$SOURCE_DIR" ]; then
+  error_msg "SOURCE_DIR变量未设置，请确保init.sh脚本正确执行"
+fi
 
 # 进入源码目录
-cd $SOURCE_DIR
+if [ ! -d "$SOURCE_DIR" ]; then
+  error_msg "源码目录 '$SOURCE_DIR' 不存在，请先运行clone.sh脚本克隆源码"
+fi
+
+cd $SOURCE_DIR || error_msg "无法进入源码目录 '$SOURCE_DIR'"
 
 info_msg "开始进行自定义配置调整..."
 
