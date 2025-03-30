@@ -1,0 +1,124 @@
+name: Build OpenWrt
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: '选择源码分支 (lede/immortalwrt)'
+        required: true
+        default: 'immortalwrt'
+        type: choice
+        options:
+          - lede
+          - immortalwrt
+
+permissions:
+  contents: write
+
+env:
+  REPO_URL_LEDE: https://github.com/coolsnowwolf/lede
+  REPO_URL_IMMORTALWRT: https://github.com/immortalwrt/immortalwrt
+  REPO_BRANCH: master
+  FEEDS_CONF: feeds.conf.default
+  CONFIG_FILE: cconfig/.config
+  DIY_SCRIPT: scripts/tweak.sh
+  UPLOAD_BIN_DIR: false
+  UPLOAD_FIRMWARE: true
+  TZ: Asia/Shanghai
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - name: 检出代码
+      # 检出当前仓库代码到工作目录
+      uses: actions/checkout@v4
+
+    - name: 初始化编译环境
+      # 初始化编译环境，设置OpenWrt源码目录名称
+      run: |
+        chmod +x scripts/init.sh
+        ./scripts/init.sh
+
+    - name: 克隆源码
+      # 根据用户选择的分支(lede/immortalwrt)克隆对应的OpenWrt源码
+      run: |
+        chmod +x scripts/clone.sh
+        ./scripts/clone.sh "${{ github.event.inputs.branch }}"
+
+    - name: 检查ccache状态
+      # 检查是否启用ccache编译缓存功能
+      id: check_ccache
+      run: |
+        chmod +x scripts/ccache.sh
+        ./scripts/ccache.sh status
+
+    - name: 还原ccache缓存
+      # 如果启用了ccache，则从缓存中还原之前的编译缓存
+      if: steps.check_ccache.outputs.ccache_enabled == 'true'
+      uses: actions/cache@v3
+      with:
+        path: |
+          ${{ env.SOURCE_DIR }}/build_dir/host
+          ${{ env.SOURCE_DIR }}/build_dir/hostpkg
+          ${{ env.SOURCE_DIR }}/staging_dir
+        key: OpenWrt_ccache_${{ github.event.inputs.branch }}_${{ hashFiles('cconfig/.config') }}
+        restore-keys: |
+          OpenWrt_ccache_${{ github.event.inputs.branch }}
+
+    - name: 更新feeds
+      # 更新软件包源(feeds)，安装必要的软件包
+      run: |
+        chmod +x scripts/feeds.sh
+        ./scripts/feeds.sh "${{ github.event.inputs.branch }}"
+
+    - name: 处理设备树文件
+      # 处理设备树文件，为特定设备(T68M)准备编译配置
+      run: |
+        chmod +x scripts/dts.sh
+        ./scripts/dts.sh "${{ github.event.inputs.branch }}"
+
+    - name: 配置编译选项
+      # 配置编译选项，使用预置的.config文件或生成默认配置
+      run: |
+        chmod +x scripts/config.sh
+        ./scripts/config.sh
+
+    - name: 执行自定义脚本
+      # 执行自定义脚本tweak.sh，用于额外的定制化配置
+      working-directory: ${{ env.SOURCE_DIR }}
+      run: |
+        if [ -f "../$DIY_SCRIPT" ]; then
+          chmod +x ../$DIY_SCRIPT
+          ../$DIY_SCRIPT
+        fi
+
+    - name: 编译固件
+      # 开始编译OpenWrt固件，编译完成后设置固件输出路径
+      run: |
+        chmod +x scripts/build.sh
+        ./scripts/build.sh "${{ github.event.inputs.branch }}"
+        echo "FIRMWARE=${{ env.SOURCE_DIR }}/bin/targets/*/*" >> $GITHUB_ENV
+
+    - name: 生成Release标签
+      # 生成Release标签和描述文件，包含编译分支和时间信息
+      id: tag
+      run: |
+        time=$(date +%Y%m%d%H%M)
+        echo "release_tag=${{ github.event.inputs.branch }}_$time" >> $GITHUB_OUTPUT
+        echo "status=success" >> $GITHUB_OUTPUT
+        touch release.txt
+        echo "固件源码:${{ github.event.inputs.branch }}" >> release.txt
+        echo "编译时间:$(date '+%Y-%m-%d %H:%M:%S')" >> release.txt
+
+    - name: 上传固件到Release
+      # 将编译好的固件上传到GitHub Release
+      uses: softprops/action-gh-release@v2
+      if: steps.tag.outputs.status == 'success'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.release_tag }}
+        body_path: release.txt
+        files: ${{ env.FIRMWARE }}/*
