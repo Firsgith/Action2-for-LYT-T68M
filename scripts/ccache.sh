@@ -8,6 +8,7 @@ source "$(dirname "$0")/init.sh"
 
 # 检查并加载tweak_options配置
 if [ -f "../customization/tweak_options" ]; then
+  dos2unix "../customization/tweak_options"
   source "../customization/tweak_options"
 fi
 
@@ -20,7 +21,7 @@ handle_ccache_config() {
     CCACHE_DIR="${CCACHE_DIR:-/tmp/ccache}"
     mkdir -p "$CCACHE_DIR"
     chmod 755 "$CCACHE_DIR" || {
-      error_msg "无法创建缓存目录：$CCACHE_DIR"
+      error_msg "无法创建缓存目录：$CCACHE_DIR，可能是权限问题或路径错误。"
       return 1
     }
 
