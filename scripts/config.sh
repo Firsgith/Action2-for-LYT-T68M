@@ -32,6 +32,8 @@ if [ -n "$config_files" ]; then
     info_msg "使用配置文件: $(basename $valid_config)"
     # 加载tweak_options配置
     if [ -f "../customization/tweak_options" ]; then
+      # 使用dos2unix处理换行符问题
+      dos2unix "../customization/tweak_options" > /dev/null 2>&1
       source "../customization/tweak_options"
       # 只在ccache_enable=1时调用ccache.sh脚本处理ccache配置
       if [ "$ccache_enable" = "1" ]; then
@@ -97,11 +99,9 @@ fi
 if [ -f "../customization/packages-included" ]; then
     pkg_error_count=0
   valid_pkgs=()
+  # 先过滤掉注释行和空行
+  filtered_pkgs=$(grep -v '^[[:space:]]*#' "../customization/packages-included" | grep -v '^[[:space:]]*$')
   while IFS= read -r pkg; do
-    # 跳过空行和注释行
-    if [ -z "$pkg" ] || [[ "$pkg" =~ ^[[:space:]]*# ]]; then
-      continue
-    fi
     # 包名有效性校验（字母、数字、下划线和连字符）
     if [[ ! "$pkg" =~ ^[a-zA-Z0-9_-]+$ ]]; then
       pkg_error_count=$((pkg_error_count+1))
@@ -111,7 +111,7 @@ if [ -f "../customization/packages-included" ]; then
     valid_pkgs+=("$pkg")
     sed -i "/CONFIG_PACKAGE_${pkg}/d" .config
     echo "CONFIG_PACKAGE_${pkg}=y" >> .config
-  done < ../customization/packages-included
+  done <<< "$filtered_pkgs"
 
   # 二次验证配置写入
   missing_count=0
@@ -139,11 +139,10 @@ fi
 if [ -f "../customization/packages_excluded" ]; then
     pkg_error_count=0
   valid_pkgs=()
+  # 先过滤掉注释行和空行
+  filtered_pkgs=$(grep -v '^[[:space:]]*#' "../customization/packages_excluded" | grep -v '^[[:space:]]*$')
   while IFS= read -r pkg; do
-    # 跳过空行和注释行
-    if [ -z "$pkg" ] || [[ "$pkg" =~ ^[[:space:]]*# ]]; then
-      continue
-    fi
+    # 包名有效性校验（字母、数字、下划线和连字符）
     if [[ ! "$pkg" =~ ^[a-zA-Z0-9_-]+$ ]]; then
       pkg_error_count=$((pkg_error_count+1))
       warning_msg "检测到无效包名: ${pkg}，已跳过"
@@ -152,9 +151,21 @@ if [ -f "../customization/packages_excluded" ]; then
     valid_pkgs+=("$pkg")
     sed -i "/CONFIG_PACKAGE_${pkg}/d" .config
     echo "CONFIG_PACKAGE_${pkg}=n" >> .config
-  done < ../customization/packages_excluded
+  done <<< "$filtered_pkgs"
 
+  # 二次验证配置写入
+  missing_count=0
+  for pkg in "${valid_pkgs[@]}"; do
+    if ! grep -q "^CONFIG_PACKAGE_${pkg}=n" .config; then
+      missing_count=$((missing_count+1))
+    fi
+  done
+
+  # 错误提示整合
   if [ $pkg_error_count -gt 0 ]; then
     warning_msg "packages_excluded中发现${pkg_error_count}个无效包名"
+  fi
+  if [ $missing_count -gt 0 ]; then
+    warning_msg "${missing_count}个合法包名未成功写入配置"
   fi
 fi
