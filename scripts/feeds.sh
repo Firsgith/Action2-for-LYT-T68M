@@ -7,6 +7,9 @@ source "$(dirname "$0")/init.sh"
 # 使用init.sh中导出的SOURCE_DIR变量
 
 # 进入源码目录
+if [ ! -d "$SOURCE_DIR" ]; then
+  error_msg "源码目录 '$SOURCE_DIR' 不存在，请先运行clone.sh脚本克隆源码"
+fi
 cd $SOURCE_DIR
 
 # 根据分支类型设置默认的feeds源配置
@@ -62,6 +65,9 @@ if [ -f "../customization/cfeeds" ]; then
 fi
 
 info_msg "开始更新feeds (详细日志见feeds_update.log)..."
+if [ ! -f "./scripts/feeds" ]; then
+  error_msg "feeds脚本不存在，请确保源码已正确克隆"
+fi
 ./scripts/feeds update -a 2>&1 | tee feeds_update.log
 if [ ${PIPESTATUS[0]} -eq 0 ]; then
   success_msg "更新feeds成功，开始安装..."
