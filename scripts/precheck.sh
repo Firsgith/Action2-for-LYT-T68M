@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 导入统一反馈函数
-source ./init.sh
+source "$(dirname \"$0\")/init.sh"
 
 # 统一格式验证模块
 info_msg "正在执行配置文件格式预检..."
