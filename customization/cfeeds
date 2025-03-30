@@ -1,0 +1,19 @@
+# 自定义feeds源配置文件
+# 每行格式: <名称> <地址>
+# - 名称: feed源的唯一标识符，如packages、luci等
+# - 地址: feed源的Git仓库地址
+#
+# 示例:
+# packages https://github.com/coolsnowwolf/packages
+# luci https://github.com/coolsnowwolf/luci
+#
+# 注意:
+# - 空行会被忽略
+# - 以#开头的行为注释
+# - 每个feed源占一行
+# - 名称和地址之间使用空格分隔
+#
+# 同名源处理:
+# 如果feeds.conf.default中已存在同名源，脚本会注释掉原有配置行
+# 然后追加此处定义的自定义源配置
+# 被注释的原始配置行会保留在文件中以便参考

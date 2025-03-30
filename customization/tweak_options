@@ -1,0 +1,32 @@
+#@tweak_options@
+# 统一配置修改项的启用状态（1表示启用，0表示禁用）
+
+#@lan_ip@管理页面IP修改模块
+# 修改源码中的默认管理页面IP
+# 默认值为192.168.2.1，可自定义修改
+lan_ip_mod=1
+lan_ip_address=192.168.2.1
+
+#@ttyd_interface@ttyd接口配置修改模块
+# 修改ttyd配置，注释掉interface相关配置
+# 效果：注释后ttyd服务将不再绑定到特定网络接口，而是监听所有可用接口
+ttyd_interface=1
+
+#@ccache_config@CCache配置修改模块
+# CCache是编译缓存工具，可以加速重复编译过程
+# 启用后会自动缓存编译中间结果，减少重复编译时间
+# ccache_size参数控制缓存占用空间上限，默认为5G
+# 建议根据磁盘空间和项目规模调整此值
+ccache_enable=1
+ccache_size=5G
+
+#@rootfs_size@rootfs分区大小修改模块，单位为MB
+# 调整rootfs分区大小
+rootfs_size=1024
+
+#@build_options@编译选项控制模块
+# 控制是否编译toolchain、SDK和image builder
+# 默认值为1，表示启用编译
+toolchain_build=1
+sdk_build=1
+image_builder_build=1

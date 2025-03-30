@@ -1,0 +1,13 @@
+# 软件包包含配置文件
+# 每行格式: <软件包名称>
+#
+# 示例:
+# luci-app-example
+# luci-theme-example
+#
+# 注意:
+# - 空行会被忽略
+# - 以#开头的行为注释
+# - 每行只能包含一个软件包名称
+# - 如果一个软件包同时出现在packages-included和packages_excluded中
+#   该软件包最终会被排除，因为packages_excluded的优先级更高
